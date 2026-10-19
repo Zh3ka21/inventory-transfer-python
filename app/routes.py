@@ -64,7 +64,14 @@ async def transfer(req: TransferRequest):
             )
             return error(400, message)
 
-        await repository.move_stock(conn, req.sku, req.from_location, req.to_location, req.quantity)
+        try:
+            await repository.move_stock(
+                conn, req.sku, req.from_location, req.to_location, req.quantity
+            )
+        except repository.ErrorInsufficientStock as e:
+            return error(400, str(e))
+        except LookupError as e:
+            return error(404, str(e))
 
         return {
             "status": "COMPLETED",
