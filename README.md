@@ -4,6 +4,9 @@ This is Zunft's backend assignment: improve an inherited warehouse transfer
 service. Choose **one** backend language version; you only need to submit one
 repository. The Zunft scope and submission rules below apply to this exercise.
 
+## The guidance on setting up is in setup.md file
+[Setup.md](https://github.com/Zh3ka21/inventory-transfer-python/blob/main/setup.md)
+
 ## The situation
 
 You have just joined the warehouse team. This service moves stock of a
