@@ -42,34 +42,36 @@ async def get_inventory(sku: str):
 async def transfer(req: TransferRequest):
     conn = await db.getconn()
 
-    levels = await repository.get_stock_levels(conn, req.sku)
-    if not levels:
-        return error(404, f"unknown SKU {req.sku}")
-    for location in (req.from_location, req.to_location):
-        if location not in levels:
-            return error(404, f"{req.sku} is not stocked at {location}")
+    try:
+        levels = await repository.get_stock_levels(conn, req.sku)
+        if not levels:
+            return error(404, f"unknown SKU {req.sku}")
+        for location in (req.from_location, req.to_location):
+            if location not in levels:
+                return error(404, f"{req.sku} is not stocked at {location}")
 
-    problem = await check_transfer_allowed(
-        req.sku, req.from_location, req.to_location, req.quantity
-    )
-    if problem:
-        return error(400, problem)
-
-    available = levels[req.from_location]
-    if available < req.quantity:
-        message = (
-            f"insufficient stock at {req.from_location}: "
-            f"available {available}, requested {req.quantity}"
+        problem = await check_transfer_allowed(
+            req.sku, req.from_location, req.to_location, req.quantity
         )
-        return error(400, message)
+        if problem:
+            return error(400, problem)
 
-    await repository.move_stock(conn, req.sku, req.from_location, req.to_location, req.quantity)
-    await db.putconn(conn)
+        available = levels[req.from_location]
+        if available < req.quantity:
+            message = (
+                f"insufficient stock at {req.from_location}: "
+                f"available {available}, requested {req.quantity}"
+            )
+            return error(400, message)
 
-    return {
-        "status": "COMPLETED",
-        "sku": req.sku,
-        "fromLocation": req.from_location,
-        "toLocation": req.to_location,
-        "quantity": req.quantity,
-    }
+        await repository.move_stock(conn, req.sku, req.from_location, req.to_location, req.quantity)
+
+        return {
+            "status": "COMPLETED",
+            "sku": req.sku,
+            "fromLocation": req.from_location,
+            "toLocation": req.to_location,
+            "quantity": req.quantity,
+        }
+    finally:
+        await db.putconn(conn)
