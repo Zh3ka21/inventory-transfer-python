@@ -34,9 +34,9 @@ async def set_quantity(conn: AsyncConnection, sku: str, location: str, quantity:
 async def move_stock(conn, sku, from_location, to_location, quantity):
     async with conn.transaction():
         cur = await conn.execute(
-            "SELECT location, quantity FROM inventory "
-            "WHERE sku = %s AND location IN (%s, %s) ORDER BY location FOR UPDATE",
-            (sku, from_location, to_location),
+                "SELECT location, quantity FROM inventory "
+                "WHERE sku = %s AND location IN (%s, %s) ORDER BY location FOR UPDATE",
+                (sku, from_location, to_location),
         )
         rows = dict(await cur.fetchall())
         for loc in (from_location, to_location):
